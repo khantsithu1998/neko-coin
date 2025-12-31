@@ -29,6 +29,7 @@ const express = require('express');
 const Blockchain = require('./blockchain');
 const Transaction = require('./transaction');
 const P2PNetwork = require('./p2p');
+const WebSocketP2P = require('./p2p-ws');
 const Storage = require('./storage');
 const { createWallet, getKeyPairFromPrivate } = require('./wallet');
 
@@ -37,6 +38,9 @@ const PORT = process.argv[2] || process.env.PORT || 3000;
 
 // Check for in-memory mode flag: node src/index.js 3000 --memory
 const useMemory = process.argv.includes('--memory');
+
+// Check for HTTP P2P mode (legacy): node src/index.js 3000 --http-p2p
+const useHttpP2P = process.argv.includes('--http-p2p');
 
 // Initialize Express app
 const app = express();
@@ -62,8 +66,10 @@ const nekoCoin = new Blockchain(storage);
 // Variable to track initialization status
 let initialized = false;
 
-// Initialize P2P network
-const p2pNetwork = new P2PNetwork(nekoCoin, PORT);
+// Initialize P2P network (WebSocket by default, HTTP with --http-p2p flag)
+const p2pNetwork = useHttpP2P
+    ? new P2PNetwork(nekoCoin, PORT)
+    : new WebSocketP2P(nekoCoin, PORT);
 
 // ========================================
 // API ENDPOINTS
@@ -642,22 +648,31 @@ async function startServer() {
     await nekoCoin.initialize();
     initialized = true;
 
+    // Start P2P server (WebSocket or HTTP)
+    if (p2pNetwork.startServer) {
+        p2pNetwork.startServer();
+    }
+
+    const wsPort = parseInt(PORT) + 1000;
+    const p2pType = useHttpP2P ? 'HTTP (legacy)' : 'WebSocket (real-time)';
+
     app.listen(PORT, () => {
         console.log('\n========================================');
-        console.log('🐱 NEKO COIN BLOCKCHAIN (P2P ENABLED)');
+        console.log('🐱 NEKO COIN BLOCKCHAIN');
         console.log('========================================');
-        console.log(`🚀 Node running on http://localhost:${PORT}`);
-        console.log(`💾 Storage: ${storage ? 'LevelDB (persistent)' : 'In-memory (volatile)'}`);
-        console.log('\n📡 P2P Network Commands:');
-        console.log('  POST /peers/connect  - Connect to another node');
-        console.log('  POST /sync           - Sync chain with peers');
-        console.log('  GET  /peers          - List connected peers');
+        console.log(`🚀 HTTP API:     http://localhost:${PORT}`);
+        if (!useHttpP2P) {
+            console.log(`📡 WebSocket:    ws://localhost:${wsPort}`);
+        }
+        console.log(`💾 Storage:      ${storage ? 'LevelDB (persistent)' : 'In-memory'}`);
+        console.log(`🌐 P2P Mode:     ${p2pType}`);
         console.log('\n💰 Blockchain Commands:');
         console.log('  POST /wallet/create  - Create new wallet');
         console.log('  POST /transaction    - Send coins');
         console.log('  POST /mine           - Mine a block');
         console.log('  GET  /chain          - View blockchain');
         console.log('  GET  /balance/:addr  - Check balance');
+        console.log('  GET  /peers          - List connected peers');
         console.log('\n🎓 Educational blockchain for learning!');
         console.log('========================================\n');
     });

@@ -19,13 +19,13 @@ graph TB
         API[Express API]
         BC[Blockchain]
         Storage[(LevelDB)]
-        P2P[P2P Network]
+        P2P[WebSocket P2P]
     end
 
-    subgraph Network["🌐 P2P Network"]
-        Node1[Node 3000]
-        Node2[Node 3001]
-        Node3[Node 3002]
+    subgraph Network["🌐 P2P Network (WebSocket)"]
+        Node1["Node 3000\nWS: 4000"]
+        Node2["Node 3001\nWS: 4001"]
+        Node3["Node 3002\nWS: 4002"]
     end
 
     Frontend -->|HTTP| API
@@ -97,16 +97,18 @@ sequenceDiagram
 ```
 neko-coin/
 ├── miner.js               # Auto-miner standalone script
+├── explore-db.js          # LevelDB explorer utility
 ├── package.json
 ├── README.md
 ├── blockchain-data-*/     # LevelDB data (gitignored)
 ├── src/                   # Backend
-│   ├── index.js           # Express API server (P2P enabled)
+│   ├── index.js           # Express API server
 │   ├── blockchain.js      # Blockchain class (chain management)
 │   ├── block.js           # Block class (mining, hashing)
 │   ├── transaction.js     # Transaction class (signing)
 │   ├── wallet.js          # Wallet utilities (key pairs)
-│   ├── p2p.js             # P2P networking module
+│   ├── p2p.js             # HTTP P2P module (legacy)
+│   ├── p2p-ws.js          # WebSocket P2P module (default)
 │   └── storage.js         # LevelDB persistent storage
 └── frontend/              # Next.js PWA wallet UI
     └── src/app/           # Pages (wallet, send, mine, explorer)
@@ -141,17 +143,55 @@ Frontend runs at `http://localhost:8000`
 ### Running Multiple Nodes
 
 ```bash
-# Terminal 1 - Main node
+# Terminal 1 - Main node (HTTP: 3000, WebSocket: 4000)
 node src/index.js 3000
 
-# Terminal 2 - Additional node
+# Terminal 2 - Additional node (HTTP: 3001, WebSocket: 4001)
 node src/index.js 3001
 
-# Terminal 3 - Additional node
+# Terminal 3 - Additional node (HTTP: 3002, WebSocket: 4002)
 node src/index.js 3002
 ```
 
-Nodes **auto-discover** each other and sync automatically!
+Nodes **auto-discover** each other via WebSocket and sync instantly!
+
+---
+
+## 📡 WebSocket P2P Networking
+
+Real-time peer-to-peer communication using WebSockets.
+
+### Ports
+
+| HTTP Port | WebSocket Port |
+|-----------|----------------|
+| 3000 | 4000 |
+| 3001 | 4001 |
+| 3002 | 4002 |
+
+### Message Types
+
+| Message | Description |
+|---------|-------------|
+| `HANDSHAKE` | Initial connection, exchange chain length |
+| `NEW_BLOCK` | Broadcast newly mined block |
+| `NEW_TX` | Broadcast new transaction |
+| `GET_CHAIN` | Request full blockchain |
+| `CHAIN` | Send blockchain data |
+| `PEERS` | Exchange peer lists |
+
+### Features
+- ⚡ **Real-time** - Instant block/transaction propagation
+- 🔄 **Auto-sync** - Chains sync on connection
+- 🔍 **Auto-discovery** - Finds peers from seed nodes
+- 🔁 **Reconnection** - Automatically reconnects to lost peers
+
+### Legacy HTTP Mode
+
+```bash
+# Use HTTP polling instead of WebSocket
+node src/index.js 3000 --http-p2p
+```
 
 ---
 
@@ -459,9 +499,9 @@ This is an **educational project**. For production use, you would need:
 
 | Feature | Current | Production Needed | Why? |
 |---------|---------|-------------------|------|
-| P2P Protocol | HTTP polling | WebSockets / libp2p | Real-time updates; HTTP polling is slow and wasteful |
+| P2P Protocol | ✅ **WebSockets** | - | Real-time instant propagation of blocks and transactions |
 | Peer Discovery | Seed nodes | DHT / DNS seeds | Decentralized discovery; seed nodes are single point of failure |
-| Node Communication | Unencrypted | TLS encryption | Prevent eavesdropping on transaction data |
+| Node Communication | Unencrypted | TLS encryption (WSS) | Prevent eavesdropping on transaction data |
 | DDoS Protection | None | Rate limiting, PoW challenges | Attackers can flood network and halt operations |
 
 ### ⚡ Performance

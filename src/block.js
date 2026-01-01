@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - BLOCK MODULE
+ * NEKO CHAIN - BLOCK MODULE
  * ========================================
  * 
  * This module defines the Block class, the fundamental unit of the blockchain.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ========================================
- * NEKO COIN - AUTO-MINER v2.0 (Multi-Node)
+ * NEKO CHAIN - AUTO-MINER v2.0 (Multi-Node)
  * ========================================
  * 
  * A standalone script that continuously mines blocks in the background.
@@ -79,7 +79,7 @@ let stats = {
 function showBanner() {
     console.log('\n');
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║  🐱 NEKO COIN AUTO-MINER v2.0 (Multi)    ║');
+    console.log('║  🐱 NEKO CHAIN AUTO-MINER v2.0 (Multi)    ║');
     console.log('╠══════════════════════════════════════════╣');
     console.log('║  Mining blocks on multiple nodes...      ║');
     console.log('║  Press Ctrl+C to stop                    ║');

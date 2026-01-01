@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - WebSocket P2P Network Module
+ * NEKO CHAIN - WebSocket P2P Network Module
  * ========================================
  * 
  * Real-time peer-to-peer networking using WebSockets.

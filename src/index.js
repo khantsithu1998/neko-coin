@@ -1,10 +1,10 @@
 /**
  * ========================================
- * NEKO COIN - REST API SERVER WITH P2P
+ * NEKO CHAIN - REST API SERVER WITH P2P
  * ========================================
  * 
  * This is the Express.js server that provides HTTP endpoints
- * to interact with the Neko Coin blockchain.
+ * to interact with the Neko Chain blockchain.
  * 
  * EDUCATIONAL NOTES:
  * ==================
@@ -81,7 +81,7 @@ const p2pNetwork = useHttpP2P
  */
 app.get('/', (req, res) => {
     res.json({
-        name: '🐱 Neko Coin Blockchain API',
+        name: '🐱 Neko Chain Blockchain API',
         version: '2.0.0 (P2P Enabled)',
         nodeUrl: `http://localhost:${PORT}`,
         peers: p2pNetwork.getPeers().length,
@@ -658,7 +658,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
         console.log('\n========================================');
-        console.log('🐱 NEKO COIN BLOCKCHAIN');
+        console.log('🐱 NEKO CHAIN BLOCKCHAIN');
         console.log('========================================');
         console.log(`🚀 HTTP API:     http://localhost:${PORT}`);
         if (!useHttpP2P) {

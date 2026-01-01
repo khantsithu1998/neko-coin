@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - LevelDB Explorer
+ * NEKO CHAIN - LevelDB Explorer
  * ========================================
  * 
  * Utility script to explore the contents of the LevelDB database.
@@ -21,7 +21,7 @@ const DB_PATH = `./blockchain-data-${PORT}`;
 
 async function explore() {
     console.log('========================================');
-    console.log('🐱 NEKO COIN - LevelDB Explorer');
+    console.log('🐱 NEKO CHAIN - LevelDB Explorer');
     console.log('========================================');
     console.log(`📁 Database: ${DB_PATH}\n`);
 

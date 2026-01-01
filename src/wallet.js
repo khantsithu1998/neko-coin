@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - WALLET MODULE
+ * NEKO CHAIN - WALLET MODULE
  * ========================================
  * 
  * This module handles cryptographic key pair generation for the blockchain.
@@ -44,11 +44,11 @@ function createWallet() {
     // The private key is a random 256-bit number
     // The public key is derived from the private key using elliptic curve math
     const keyPair = ec.genKeyPair();
-    
+
     // Extract keys as hexadecimal strings
     const publicKey = keyPair.getPublic('hex');
     const privateKey = keyPair.getPrivate('hex');
-    
+
     return {
         publicKey,   // This is your wallet address
         privateKey   // Keep this SECRET! Never share it!

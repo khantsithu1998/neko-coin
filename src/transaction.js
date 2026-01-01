@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - TRANSACTION MODULE
+ * NEKO CHAIN - TRANSACTION MODULE
  * ========================================
  * 
  * This module defines the Transaction class, representing transfers of coins.

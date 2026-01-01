@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - LEVELDB STORAGE MODULE
+ * NEKO CHAIN - LEVELDB STORAGE MODULE
  * ========================================
  * 
  * This module handles persistent storage of the blockchain using LevelDB.

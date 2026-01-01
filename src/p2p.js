@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - P2P NETWORK MODULE
+ * NEKO CHAIN - P2P NETWORK MODULE
  * ========================================
  * 
  * This module handles peer-to-peer networking between blockchain nodes.

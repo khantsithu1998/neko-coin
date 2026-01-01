@@ -1,4 +1,4 @@
-# 🐱 Neko Coin Blockchain
+# 🐱 Neko Chain Blockchain
 
 A minimal, educational blockchain implementation built with Node.js. This project demonstrates core cryptocurrency and P2P networking concepts in a clear, readable way.
 

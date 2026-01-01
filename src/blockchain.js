@@ -1,6 +1,6 @@
 /**
  * ========================================
- * NEKO COIN - BLOCKCHAIN MODULE
+ * NEKO CHAIN - BLOCKCHAIN MODULE
  * ========================================
  * 
  * This is the main class that manages the entire blockchain.
@@ -110,7 +110,7 @@ class Blockchain {
         }
 
         this.initialized = true;
-        console.log('🐱 Neko Coin Blockchain initialized!');
+        console.log('🐱 Neko Chain Blockchain initialized!');
         console.log(`   Chain length: ${this.chain.length} blocks`);
         console.log(`   Difficulty: ${this.difficulty} (hash must start with ${'0'.repeat(this.difficulty)})`);
         console.log(`   Mining Reward: ${this.miningReward} NEKO`);

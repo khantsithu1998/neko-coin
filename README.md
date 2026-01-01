@@ -205,6 +205,55 @@ STOP
 
 > **Note**: Neko Chain's VM is **educational** - simpler to understand while demonstrating core concepts. The EVM is production-grade with 10+ years of development.
 
+### Can We Add Full EVM Compatibility?
+
+**Short Answer**: Technically yes, but very complex.
+
+#### Challenges for Full EVM
+
+| Challenge | Description | Effort |
+|-----------|-------------|--------|
+| **256-bit Arithmetic** | EVM uses 256-bit integers everywhere | Medium |
+| **140+ Opcodes** | We have ~30, need ~110 more | High |
+| **Patricia Merkle Trie** | EVM storage uses cryptographic trie for proofs | Very High |
+| **Account Model** | Contracts need nonce, balance, codehash, storage root | Medium |
+| **Precompiled Contracts** | ECDSA recovery, SHA256, modexp, etc. | Medium |
+| **Complex Gas Schedule** | Per-opcode costs, memory expansion, storage costs | Medium |
+
+#### Options for EVM Compatibility
+
+```mermaid
+graph LR
+    A[Want EVM?] --> B{Choose Path}
+    B --> C[Keep Custom VM]
+    B --> D[Use @ethereumjs/evm]
+    B --> E[Fork Geth]
+    C --> F[Educational Only]
+    D --> G[Solidity Support]
+    E --> H[Complete Rewrite]
+```
+
+| Option | Description | Compatibility |
+|--------|-------------|---------------|
+| **Keep Custom VM** | Current educational VM | Neko Chain only |
+| **@ethereumjs/evm** | npm package with full EVM | Full Solidity support |
+| **Fork Geth** | Go implementation | Production EVM (different language) |
+
+#### Recommendation
+
+- **For learning**: Keep our simple VM - it's easier to understand
+- **For production**: Integrate `@ethereumjs/evm` package:
+  ```bash
+  npm install @ethereumjs/evm @ethereumjs/common
+  ```
+
+#### Why We Chose Custom VM
+
+1. **Simplicity** - Easier to read and modify (~500 lines vs 10,000+)
+2. **Educational** - Shows core concepts without complexity
+3. **JavaScript Native** - No external dependencies
+4. **Hackable** - Easy to add custom opcodes
+
 ---
 
 ## 🚀 Getting Started

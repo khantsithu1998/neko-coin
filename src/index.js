@@ -31,6 +31,8 @@ const Transaction = require('./transaction');
 const P2PNetwork = require('./p2p');
 const WebSocketP2P = require('./p2p-ws');
 const Storage = require('./storage');
+const { ContractManager } = require('./contract');
+const { compile } = require('./vm');
 const { createWallet, getKeyPairFromPrivate } = require('./wallet');
 
 // Allow port to be specified via: node src/index.js 3001
@@ -62,6 +64,9 @@ const storage = useMemory ? null : new Storage(`./blockchain-data-${PORT}`);
 
 // Create blockchain instance with storage
 const nekoCoin = new Blockchain(storage);
+
+// Initialize contract manager
+const contractManager = new ContractManager(storage);
 
 // Variable to track initialization status
 let initialized = false;
@@ -636,6 +641,205 @@ app.post('/seeds/remove', (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// ========================================
+// SMART CONTRACT ENDPOINTS
+// ========================================
+
+/**
+ * POST /contract/deploy
+ * 
+ * Deploy a new smart contract.
+ */
+app.post('/contract/deploy', async (req, res) => {
+    try {
+        const { deployer, bytecode, source, gasLimit } = req.body;
+
+        if (!deployer) {
+            return res.status(400).json({
+                error: 'Missing deployer address',
+                hint: 'Use your wallet public key as deployer'
+            });
+        }
+
+        if (!bytecode && !source) {
+            return res.status(400).json({
+                error: 'Missing bytecode or source',
+                hint: 'Provide either compiled bytecode or source code'
+            });
+        }
+
+        let codeToUse = bytecode || source;
+        const isSource = !!source;
+
+        const result = await contractManager.deploy({
+            deployer,
+            bytecode: codeToUse,
+            isSource,
+            value: 0,
+            gasLimit: gasLimit || 1000000
+        });
+
+        if (result.success) {
+            res.json({
+                message: 'Contract deployed successfully!',
+                address: result.address,
+                gasUsed: result.gasUsed,
+                logs: result.logs
+            });
+        } else {
+            res.status(400).json({
+                error: result.error,
+                gasUsed: result.gasUsed
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /contract/call
+ * 
+ * Call a smart contract function.
+ */
+app.post('/contract/call', async (req, res) => {
+    try {
+        const { contractAddress, caller, data, value, gasLimit } = req.body;
+
+        if (!contractAddress || !caller) {
+            return res.status(400).json({
+                error: 'Missing contractAddress or caller',
+                required: ['contractAddress', 'caller']
+            });
+        }
+
+        // Convert data to buffer if provided
+        let callData = Buffer.from([]);
+        if (data) {
+            if (Array.isArray(data)) {
+                callData = Buffer.from(data);
+            } else if (typeof data === 'string') {
+                callData = Buffer.from(data, 'hex');
+            }
+        }
+
+        const result = await contractManager.call({
+            contractAddress,
+            caller,
+            data: callData,
+            value: value || 0,
+            gasLimit: gasLimit || 1000000
+        });
+
+        if (result.success) {
+            res.json({
+                success: true,
+                gasUsed: result.gasUsed,
+                returnData: Array.from(result.returnData),
+                logs: result.logs,
+                stack: result.stack
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                error: result.error,
+                gasUsed: result.gasUsed
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /contract/:address
+ * 
+ * Get contract details.
+ */
+app.get('/contract/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const contract = await contractManager.getContract(address);
+
+        if (!contract) {
+            return res.status(404).json({ error: 'Contract not found' });
+        }
+
+        // Convert storage to object
+        const storageObj = {};
+        for (const [key, value] of contract.storage) {
+            storageObj[key] = value.toString();
+        }
+
+        res.json({
+            address: contract.address,
+            creator: contract.creator,
+            balance: contract.balance,
+            bytecodeLength: contract.bytecode.length,
+            storage: storageObj,
+            createdAt: new Date(contract.createdAt).toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /contracts
+ * 
+ * List all deployed contracts.
+ */
+app.get('/contracts', async (req, res) => {
+    try {
+        const contracts = await contractManager.getAllContracts();
+
+        res.json({
+            count: contracts.length,
+            contracts: contracts.map(c => ({
+                address: c.address,
+                creator: c.creator,
+                balance: c.balance,
+                bytecodeLength: c.bytecode.length,
+                createdAt: new Date(c.createdAt).toISOString()
+            }))
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /contract/compile
+ * 
+ * Compile source code to bytecode (for testing).
+ */
+app.post('/contract/compile', (req, res) => {
+    try {
+        const { source } = req.body;
+
+        if (!source) {
+            return res.status(400).json({
+                error: 'Missing source code',
+                hint: 'Provide source code in the body'
+            });
+        }
+
+        const bytecode = compile(source);
+
+        res.json({
+            success: true,
+            bytecode: Array.from(bytecode),
+            bytecodeHex: bytecode.toString('hex'),
+            length: bytecode.length
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
     }
 });
 

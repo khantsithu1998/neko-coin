@@ -95,7 +95,7 @@ sequenceDiagram
 ## 📁 Project Structure
 
 ```
-neko-coin/
+neko-chain/
 ├── miner.js               # Auto-miner standalone script
 ├── explore-db.js          # LevelDB explorer utility
 ├── package.json
@@ -107,12 +107,88 @@ neko-coin/
 │   ├── block.js           # Block class (mining, hashing)
 │   ├── transaction.js     # Transaction class (signing)
 │   ├── wallet.js          # Wallet utilities (key pairs)
+│   ├── vm.js              # Smart Contract Virtual Machine
+│   ├── contract.js        # Contract class and manager
 │   ├── p2p.js             # HTTP P2P module (legacy)
 │   ├── p2p-ws.js          # WebSocket P2P module (default)
 │   └── storage.js         # LevelDB persistent storage
 └── frontend/              # Next.js PWA wallet UI
     └── src/app/           # Pages (wallet, send, mine, explorer)
 ```
+
+---
+
+## 📜 Smart Contracts
+
+Neko Chain includes a **stack-based Virtual Machine** for executing smart contracts.
+
+### VM Architecture
+
+```mermaid
+graph TB
+    TX[Transaction] --> Handler[Contract Handler]
+    Handler --> VM[Virtual Machine]
+    VM --> Stack[Stack]
+    VM --> Memory[Memory]
+    VM --> Storage[(Storage)]
+    VM --> Gas[Gas Meter]
+```
+
+### Opcodes
+
+| Category | Opcodes |
+|----------|--------|
+| Stack | `PUSH`, `POP`, `DUP`, `SWAP` |
+| Arithmetic | `ADD`, `SUB`, `MUL`, `DIV`, `MOD` |
+| Comparison | `LT`, `GT`, `EQ`, `ISZERO` |
+| Logic | `AND`, `OR`, `NOT` |
+| Control | `JUMP`, `JUMPI`, `JUMPDEST`, `STOP` |
+| Storage | `SLOAD`, `SSTORE` |
+| System | `CALLER`, `CALLVALUE`, `RETURN`, `REVERT`, `LOG` |
+
+### Deploy a Contract
+
+```bash
+# Using source code (simple language)
+curl -X POST http://localhost:3000/contract/deploy \
+  -H "Content-Type: application/json" \
+  -d '{
+    "deployer": "YOUR_PUBLIC_KEY",
+    "source": "PUSH 100\nSTORE 0\nSTOP"
+  }'
+```
+
+### Call a Contract
+
+```bash
+curl -X POST http://localhost:3000/contract/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contractAddress": "contract_abc123...",
+    "caller": "YOUR_PUBLIC_KEY"
+  }'
+```
+
+### Example: Counter Contract
+
+```
+// Store initial value 0
+PUSH 0
+STORE 0
+STOP
+```
+
+### Smart Contract Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/contract/deploy` | POST | Deploy a contract |
+| `/contract/call` | POST | Execute a contract |
+| `/contract/:address` | GET | Get contract details |
+| `/contracts` | GET | List all contracts |
+| `/contract/compile` | POST | Compile source to bytecode |
+
+---
 
 ## 🚀 Getting Started
 
